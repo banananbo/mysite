@@ -37,10 +37,10 @@ jobs:
           echo "Known hosts file contents:"
           cat ~/.ssh/known_hosts
 
-      - name: Test SSH connection
-        run: |
-          echo "Testing SSH connection to XServer"
-          ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts -p 10022 ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && pwd && ls -la"
+      # - name: Test SSH connection
+      #   run: |
+      #     echo "Testing SSH connection to XServer"
+      #     ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts -p 10022 ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && pwd && ls -la"
 
       - name: Deploy to XServer
         env:

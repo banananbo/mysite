@@ -22,7 +22,17 @@ jobs:
       - name: Add known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          echo "Adding XServer host to known hosts"
+          ssh-keyscan -H ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          chmod 644 ~/.ssh/known_hosts
+          echo "Known hosts file contents:"
+          cat ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          echo "Testing SSH connection to XServer"
+          ssh -o StrictHostKeyChecking=no -v ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful'"
 
       - name: Deploy to XServer
         env:
@@ -30,6 +40,11 @@ jobs:
           XSERVER_USER: ${{ secrets.XSERVER_USER }}
           XSERVER_HOST: ${{ secrets.XSERVER_HOST }}
         run: |
+          echo "Starting deployment to XServer"
+          echo "Deploy path: $DEPLOY_PATH"
+          echo "User: $XSERVER_USER"
+          echo "Host: $XSERVER_HOST"
+          
           rsync -avz --delete \
             --exclude='.git/' \
             --exclude='.github/' \

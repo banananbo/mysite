@@ -19,10 +19,18 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.XSERVER_SSH_PRIVATE_KEY }}
 
-      - name: Add known hosts
+      - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          echo "UserKnownHostsFile ~/.ssh/known_hosts" >> ~/.ssh/config
+          echo "ServerAliveInterval 60" >> ~/.ssh/config
+          echo "ServerAliveCountMax 3" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Add known hosts
+        run: |
           echo "Adding XServer host to known hosts"
           ssh-keyscan -H -p 10022 ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
           chmod 644 ~/.ssh/known_hosts
@@ -32,7 +40,7 @@ jobs:
       - name: Test SSH connection
         run: |
           echo "Testing SSH connection to XServer"
-          ssh -o StrictHostKeyChecking=no -p 10022 -v ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful'"
+          ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts -p 10022 ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && pwd && ls -la"
 
       - name: Deploy to XServer
         env:
@@ -45,7 +53,7 @@ jobs:
           echo "User: $XSERVER_USER"
           echo "Host: $XSERVER_HOST"
           
-          rsync -avz --delete -e "ssh -p 10022" \
+          rsync -avz --delete -e "ssh -vvv -p 10022 -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts" \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='README.md' \

@@ -23,10 +23,18 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "StrictHostKeyChecking no" >> ~/.ssh/config
-          echo "UserKnownHostsFile ~/.ssh/known_hosts" >> ~/.ssh/config
-          echo "ServerAliveInterval 60" >> ~/.ssh/config
-          echo "ServerAliveCountMax 3" >> ~/.ssh/config
+          cat > ~/.ssh/config << EOL
+          Host ${{ secrets.XSERVER_HOST }}
+            Port 10022
+            User ${{ secrets.XSERVER_USER }}
+            StrictHostKeyChecking no
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ServerAliveInterval 30
+            ServerAliveCountMax 3
+            TCPKeepAlive yes
+            ConnectTimeout 30
+            PreferredAuthentications publickey
+          EOL
           chmod 600 ~/.ssh/config
 
       - name: Add known hosts
@@ -37,10 +45,10 @@ jobs:
           echo "Known hosts file contents:"
           cat ~/.ssh/known_hosts
 
-      # - name: Test SSH connection
-      #   run: |
-      #     echo "Testing SSH connection to XServer"
-      #     ssh -vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts -p 10022 ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && pwd && ls -la"
+      - name: Test SSH connection
+        run: |
+          echo "Testing SSH connection to XServer"
+          ssh -vvv ${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful'"
 
       - name: Deploy to XServer
         env:
@@ -53,7 +61,7 @@ jobs:
           echo "User: $XSERVER_USER"
           echo "Host: $XSERVER_HOST"
           
-          rsync -avz --delete -e "ssh -vvv -p 10022 -o StrictHostKeyChecking=no -o UserKnownHostsFile=~/.ssh/known_hosts" \
+          rsync -avz --delete -e "ssh -vvv" \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='README.md' \

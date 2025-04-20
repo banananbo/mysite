@@ -1,0 +1,37 @@
+name: Deploy to XServer
+
+on:
+  push:
+    branches:
+      - main  # メインブランチにプッシュされた時に実行
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production  # 環境を指定
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.XSERVER_SSH_PRIVATE_KEY }}
+
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to XServer
+        env:
+          DEPLOY_PATH: ${{ secrets.XSERVER_DEPLOY_PATH }}
+          XSERVER_USER: ${{ secrets.XSERVER_USER }}
+          XSERVER_HOST: ${{ secrets.XSERVER_HOST }}
+        run: |
+          rsync -avz --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='README.md' \
+            ./ $XSERVER_USER@$XSERVER_HOST:$DEPLOY_PATH 

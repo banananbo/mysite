@@ -13,61 +13,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.XSERVER_SSH_PRIVATE_KEY }}
-
-      - name: Configure SSH
+      - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          cat > ~/.ssh/config << EOL
-          Host ${{ secrets.XSERVER_HOST }}
-            Port 10022
-            User ${{ secrets.XSERVER_USER }}
-            StrictHostKeyChecking no
-            UserKnownHostsFile ~/.ssh/known_hosts
-            ServerAliveInterval 30
-            ServerAliveCountMax 3
-            TCPKeepAlive yes
-            ConnectTimeout 30
-            PreferredAuthentications publickey
-            LogLevel DEBUG3
-            BatchMode yes
-          EOL
-          chmod 600 ~/.ssh/config
+          echo "${{ secrets.XSERVER_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 10022 -H ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Add known hosts
+      - name: Test SSH connection
         run: |
-          echo "Adding XServer host to known hosts"
-          ssh-keyscan -H -p 10022 ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-          chmod 644 ~/.ssh/known_hosts
-          echo "Known hosts file contents:"
-          cat ~/.ssh/known_hosts
-      
-      - name: Test
-        run: |
-          ssh xs006047@xs006047.xsrv.jp -p 10022
-      # - name: Test SSH connection
-      #   run: |
-      #     echo "Testing SSH connection to XServer"
-      #     ssh -vvv ${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && sleep 1"
+          ssh -p 10022 ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connected successfully!'"
 
-      # - name: Deploy to XServer
-      #   env:
-      #     DEPLOY_PATH: ${{ secrets.XSERVER_DEPLOY_PATH }}
-      #     XSERVER_USER: ${{ secrets.XSERVER_USER }}
-      #     XSERVER_HOST: ${{ secrets.XSERVER_HOST }}
-      #   run: |
-      #     echo "Starting deployment to XServer"
-      #     echo "Deploy path: $DEPLOY_PATH"
-      #     echo "User: $XSERVER_USER"
-      #     echo "Host: $XSERVER_HOST"
-          
-      #     rsync -avz --delete -e "ssh -vvv" \
-      #       --exclude='.git/' \
-      #       --exclude='.github/' \
-      #       --exclude='README.md' \
-      #       ./ $XSERVER_USER@$XSERVER_HOST:$DEPLOY_PATH 

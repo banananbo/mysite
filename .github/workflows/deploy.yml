@@ -49,8 +49,7 @@ jobs:
       
       - name: Test
         run: |
-          echo ${{ secrets.XSERVER_HOST }}
-          echo ${{ secrets.XSERVER_USER }}
+          ssh xs006047@xs006047.xsrv.jp -p 10022
       # - name: Test SSH connection
       #   run: |
       #     echo "Testing SSH connection to XServer"

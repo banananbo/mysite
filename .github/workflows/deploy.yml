@@ -24,7 +24,7 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "Adding XServer host to known hosts"
-          ssh-keyscan -H ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -H -p 10022 ${{ secrets.XSERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
           chmod 644 ~/.ssh/known_hosts
           echo "Known hosts file contents:"
           cat ~/.ssh/known_hosts
@@ -32,7 +32,7 @@ jobs:
       - name: Test SSH connection
         run: |
           echo "Testing SSH connection to XServer"
-          ssh -o StrictHostKeyChecking=no -v ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful'"
+          ssh -o StrictHostKeyChecking=no -p 10022 -v ${{ secrets.XSERVER_USER }}@${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful'"
 
       - name: Deploy to XServer
         env:
@@ -45,7 +45,7 @@ jobs:
           echo "User: $XSERVER_USER"
           echo "Host: $XSERVER_HOST"
           
-          rsync -avz --delete \
+          rsync -avz --delete -e "ssh -p 10022" \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='README.md' \

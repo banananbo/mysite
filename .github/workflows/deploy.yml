@@ -35,6 +35,7 @@ jobs:
             ConnectTimeout 30
             PreferredAuthentications publickey
             LogLevel DEBUG3
+            BatchMode yes
           EOL
           chmod 600 ~/.ssh/config
 
@@ -45,25 +46,29 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
           echo "Known hosts file contents:"
           cat ~/.ssh/known_hosts
-
-      - name: Test SSH connection
+      
+      - name: Test
         run: |
-          echo "Testing SSH connection to XServer"
-          ssh -vvv ${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && sleep 1"
+          echo ${{ secrets.XSERVER_HOST }}
+          echo ${{ secrets.XSERVER_USER }}
+      # - name: Test SSH connection
+      #   run: |
+      #     echo "Testing SSH connection to XServer"
+      #     ssh -vvv ${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && sleep 1"
 
-      - name: Deploy to XServer
-        env:
-          DEPLOY_PATH: ${{ secrets.XSERVER_DEPLOY_PATH }}
-          XSERVER_USER: ${{ secrets.XSERVER_USER }}
-          XSERVER_HOST: ${{ secrets.XSERVER_HOST }}
-        run: |
-          echo "Starting deployment to XServer"
-          echo "Deploy path: $DEPLOY_PATH"
-          echo "User: $XSERVER_USER"
-          echo "Host: $XSERVER_HOST"
+      # - name: Deploy to XServer
+      #   env:
+      #     DEPLOY_PATH: ${{ secrets.XSERVER_DEPLOY_PATH }}
+      #     XSERVER_USER: ${{ secrets.XSERVER_USER }}
+      #     XSERVER_HOST: ${{ secrets.XSERVER_HOST }}
+      #   run: |
+      #     echo "Starting deployment to XServer"
+      #     echo "Deploy path: $DEPLOY_PATH"
+      #     echo "User: $XSERVER_USER"
+      #     echo "Host: $XSERVER_HOST"
           
-          rsync -avz --delete -e "ssh -vvv" \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='README.md' \
-            ./ $XSERVER_USER@$XSERVER_HOST:$DEPLOY_PATH 
+      #     rsync -avz --delete -e "ssh -vvv" \
+      #       --exclude='.git/' \
+      #       --exclude='.github/' \
+      #       --exclude='README.md' \
+      #       ./ $XSERVER_USER@$XSERVER_HOST:$DEPLOY_PATH 

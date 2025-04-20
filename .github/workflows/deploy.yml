@@ -34,6 +34,7 @@ jobs:
             TCPKeepAlive yes
             ConnectTimeout 30
             PreferredAuthentications publickey
+            LogLevel DEBUG3
           EOL
           chmod 600 ~/.ssh/config
 
@@ -48,7 +49,7 @@ jobs:
       - name: Test SSH connection
         run: |
           echo "Testing SSH connection to XServer"
-          ssh -vvv ${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful'"
+          ssh -vvv ${{ secrets.XSERVER_HOST }} "echo 'SSH connection successful' && sleep 1"
 
       - name: Deploy to XServer
         env:
